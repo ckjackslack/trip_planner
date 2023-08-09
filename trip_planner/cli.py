@@ -1,7 +1,7 @@
 import argparse
 
 
-def get_args():
+def get_args(override_args=None):
     parser = argparse.ArgumentParser(description="Plan your trip places.")
 
 
@@ -15,4 +15,6 @@ def get_args():
     parser.add_argument('--list', help='List all places', action="store_true")
     parser.add_argument('--name', help='Name of the place', type=str)
 
-    return parser.parse_args()
+    if override_args is None:
+        return parser.parse_args()
+    return parser.parse_args(override_args)

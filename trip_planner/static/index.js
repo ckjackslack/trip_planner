@@ -2,6 +2,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const locationForm = document.getElementById('location-form');
     const loadLocationsBtn = document.getElementById('load-locations');
     const locationsDiv = document.getElementById('locations');
+    const clearBtn = document.getElementById('clear-locations');
+    const tableBodyElem = document.getElementById('data-rows');
+    const generateMapBtn = document.getElementById('generate-map');
+    const inputName = document.querySelector('input[name="name"]');
+    const inputLocationName = document.querySelector('input[name="location_name"]');
+
+    clearBtn.addEventListener('click', function() {
+        tableBodyElem.innerHTML = "";
+    });
+
+    generateMapBtn.addEventListener('click', function() {
+        fetch('/generate_map')
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+        });
+    });
 
     locationForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -13,18 +30,18 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.text())
         .then(data => {
             loadLocationsBtn.click();
+            generateMapBtn.click();
+            setTimeout(() => location.reload(), 1000);
         })
         .catch(error => console.error('Error:', error));
     });
 
     function render_locations(locations) {
-        const header_cols = ["ID", "Name", "Location name", "Lat", "Lon"];
-        const header_as_str = "<th>" + header_cols.join("</th><th>") + "</th>";
-        let content = `<table><thead><tr>${header_as_str}</tr></thead><tbody>`;
+        let rows = "";
         for (const loc of locations) {
-            content += `<tr><td>${loc.join("</td><td>")}</td></tr>`;
+            rows += `<tr><td>${loc.join("</td><td>")}</td></tr>`;
         }
-        return content + "</tbody></table>";
+        return rows;
     }
 
     loadLocationsBtn.addEventListener('click', function() {
@@ -32,10 +49,11 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             const locations = data.locations;
-            console.log(locations);
-            locationsDiv.innerHTML = render_locations(locations);
-            locationForm.childNodes[1].value = "";
-            locationForm.childNodes[3].value = "";
+            if (locations) {
+                tableBodyElem.innerHTML = render_locations(locations);
+                inputName.value = "";
+                inputLocationName.value = "";
+            }
         })
         .catch(error => console.error('Error:', error));
     });

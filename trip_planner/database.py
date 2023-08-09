@@ -1,54 +1,57 @@
-import sqlite3
+from trip_planner.datastructs import Place
+from trip_planner.helpers import DB
+from trip_planner.queries import *
+from trip_planner.utils import forget
 
 
 def setup_database():
-    conn = sqlite3.connect('trip_planner.db')
-    c = conn.cursor()
-    c.execute(
-        "CREATE TABLE IF NOT EXISTS places(id INTEGER PRIMARY KEY, name TEXT, location TEXT, latitude REAL, longitude REAL)",
-    )
-    conn.commit()
-    conn.close()
+    with DB() as cur:
+        cur.execute(CREATE_STMT)
 
 
-def add_place(name, location, lat, lon):
-    conn = sqlite3.connect('trip_planner.db')
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO places (name, location, latitude, longitude) VALUES (?, ?, ?, ?)",
-        (name, location, lat, lon),
-    )
-    conn.commit()
-    conn.close()
+def add_place(place: Place):
+    vals = tuple(forget(place._asdict(), "id").values())
+    with DB() as cur:
+        cur.execute(
+            INSERT_STMT,
+            vals,
+        )
 
 
-def update_place(_id, name=None, location=None, lat=None, lon=None):
-    conn = sqlite3.connect('trip_planner.db')
-    c = conn.cursor()
+def update_place(place_id: int, **kwargs):
+    with DB() as cur:
+        cur.execute(
+            SELECT_SINGLE_STMT,
+            (place_id,),
+        )
+        result = cur.fetchone()
+        if not result:
+            return False
+        else:
+            result = Place(*result)
+            kwargs.update({
+                "name": result.name,
+                "location": result.location,
+                "latitude": result.latitude,
+                "longitude": result.longitude,
+            })
 
-    # Find the current data first
-    c.execute("SELECT name, location, latitude, longitude FROM places WHERE id=?", (_id,))
-    result = c.fetchone()
-    if not result:
-        print("ID not found.")
-        return
-
-    # If no new data is provided, keep the old
-    name = name or result[0]
-    location = location or result[1]
-    lat = lat or result[2]
-    lon = lon or result[3]
-
-    c.execute("UPDATE places SET name=?, location=?, latitude=?, longitude=? WHERE id=?",
-              (name, location, lat, lon, _id))
-    conn.commit()
-    conn.close()
+        cur.execute(
+            UPDATE_STMT,
+            (
+                tuple(kwargs.values())
+                + (result.id,)
+            ),
+        )
+        return True
 
 
 def list_places():
-    conn = sqlite3.connect('trip_planner.db')
-    c = conn.cursor()
-    c.execute("SELECT id, name, location, latitude, longitude FROM places")
-    places = c.fetchall()
-    conn.close()
-    return places
+    with DB() as cur:
+        cur.execute(SELECT_ALL_STMT)
+        places = cur.fetchall()
+        return [
+            Place(*place)
+            for place
+            in places
+        ]
