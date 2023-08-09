@@ -54,8 +54,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function render_locations(locations) {
         let rows = "";
-        for (const loc of locations) {
-            rows += `<tr><td>${loc.join("</td><td>")}</td></tr>`;
+        const order = ["id", "name", "location", "latitude", "longitude", "distance"]
+        let row = [];
+        for (let loc of locations) {
+            row = order.map((o) => loc[o]);
+            rows += `<tr><td>${row.join("</td><td>")}</td></tr>`;
         }
         return rows;
     }

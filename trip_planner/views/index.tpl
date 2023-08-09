@@ -44,6 +44,7 @@
                             <th>Location name</th>
                             <th>Latitude</th>
                             <th>Longitude</th>
+                            <th>Distance from origin</th>
                         </tr>
                     </thead>
                     <tbody id="data-rows">

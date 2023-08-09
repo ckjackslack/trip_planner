@@ -1,7 +1,10 @@
 from trip_planner.datastructs import Place
 from trip_planner.helpers import DB
 from trip_planner.queries import *
-from trip_planner.utils import forget
+from trip_planner.utils import (
+    calculate_distance,
+    forget,
+)
 
 
 def setup_database():
@@ -51,7 +54,7 @@ def list_places():
         cur.execute(SELECT_ALL_STMT)
         places = cur.fetchall()
         return [
-            Place(*place)
+            Place.from_tuple(place)
             for place
             in places
         ]

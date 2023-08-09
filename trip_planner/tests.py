@@ -97,7 +97,7 @@ class TripPlannerTestCase(unittest.TestCase):
         mock_fetchall.assert_called_once()
         assert places == rows
 
-        some_place = Place(*row)
+        some_place = Place.from_tuple(row)
         some_place_kwargs = forget(some_place._asdict(), "id")
         add_place(some_place)
 
