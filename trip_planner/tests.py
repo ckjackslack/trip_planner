@@ -18,6 +18,7 @@ from trip_planner.datastructs import Place
 from trip_planner.geolocation import get_location_info
 from trip_planner.queries import *
 from trip_planner.utils import (
+    calculate_distance,
     get_path,
     forget,
 )
@@ -61,6 +62,12 @@ class TripPlannerTestCase(unittest.TestCase):
         assert len(forget(some_dict, "name", "age")) == (size - 2)
         assert len(forget(some_dict, "name", "age", "is_available")) == 0
 
+    def test_utils_calculate_distance(self):
+        c1 = (50.861161, 20.6167174)
+        c2 = (50.8579543, 20.6518976)
+        ret = calculate_distance(c1, c2)
+        assert round(ret, 2) == 2.5
+
     @patch('trip_planner.helpers.sqlite3', spec=sqlite3)
     def test_database(self, mock_sqlite3):
         mock_cursor = mock_sqlite3.connect.return_value.cursor
@@ -96,7 +103,7 @@ class TripPlannerTestCase(unittest.TestCase):
 
         mock_execute.assert_called_with(
             INSERT_STMT,
-            some_place_kwargs,
+            row[1:],
         )
         assert mock_execute.call_count == 3
 

@@ -1,6 +1,7 @@
 import os
 
 from bottle import (
+    HTTPResponse,
     abort,
     get,
     request,
@@ -14,6 +15,7 @@ from bottle import (
 import trip_planner.settings as settings
 from trip_planner.database import (
     add_place,
+    clear_places,
     list_places,
     setup_database,
 )
@@ -36,15 +38,22 @@ def show_locations():
     return template(settings.MAP_PATH)
 
 
-@route('/add_location', method='POST')
-def add_location():
-    name = request.forms.get('name')
-    location_name = request.forms.get('location_name')
-    location, lat, lon = get_location_info(location_name, force=True)
-    if location:
-        place = Place(None, name, location, lat, lon)
-        add_place(place)
-    return "Location Added" if location else "Failed to Add Location"
+@route('/add_locations', method='POST')
+def add_locations():
+    place = request.forms.get('place')
+    locations = request.forms.get('locs').strip().split("\r\n")
+    for name in locations:
+        location, lat, lon = get_location_info(f"{place}, {name}", force=True)
+        if location:
+            place_obj = Place(None, name, location, lat, lon)
+            add_place(place_obj)
+    return ""
+
+
+@route('/delete_all', method="DELETE")
+def delete_all():
+    clear_places()
+    return HTTPResponse(status=204)
 
 
 @route('/get_locations', method='GET')

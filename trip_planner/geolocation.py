@@ -7,6 +7,10 @@ def get_location_info(place_name, force=False):
     try:
         location = geolocator.geocode(place_name, exactly_one=False)
 
+        if location is None:
+            print(f"Cannot pull the data for {place_name!r}")
+            return None, None, None
+
         if len(location) == 1:
             return (
                 location[0].address,

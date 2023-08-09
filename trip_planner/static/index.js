@@ -7,9 +7,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const generateMapBtn = document.getElementById('generate-map');
     const inputName = document.querySelector('input[name="name"]');
     const inputLocationName = document.querySelector('input[name="location_name"]');
+    const deleteAllBtn = document.getElementById('delete-locations');
 
     clearBtn.addEventListener('click', function() {
         tableBodyElem.innerHTML = "";
+    });
+
+    deleteAllBtn.addEventListener('click', function() {
+        fetch('/delete_all', {
+            method: 'DELETE',
+        })
+        .then(data => {
+            clearBtn.click();
+        });
     });
 
     generateMapBtn.addEventListener('click', function() {
@@ -23,15 +33,21 @@ document.addEventListener('DOMContentLoaded', function() {
     locationForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(locationForm);
-        fetch('/add_location', {
+        fetch('/add_locations', {
             method: 'POST',
             body: formData
         })
         .then(response => response.text())
         .then(data => {
-            loadLocationsBtn.click();
-            generateMapBtn.click();
-            setTimeout(() => location.reload(), 1000);
+            setTimeout(() => {
+                loadLocationsBtn.click();
+            }, 5000);
+            setTimeout(() => {
+                generateMapBtn.click();
+                setTimeout(() => {
+                    location.reload();
+                }, 3000);
+            }, 15000);
         })
         .catch(error => console.error('Error:', error));
     });

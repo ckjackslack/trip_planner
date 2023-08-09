@@ -5,6 +5,7 @@ from trip_planner.utils import get_path
 
 BASE_DIR = str(get_path(".."))
 DB_FILE = "trip_planner.db"
+ORIGIN = (0, "Kielce", "Kielce", 50.866059, 20.627303)
 HOST = 'localhost'
 MAIN_TEMPLATE_PATH = get_path("views")
 MAP_FILE = "trip_map.html"

@@ -55,3 +55,8 @@ def list_places():
             for place
             in places
         ]
+
+
+def clear_places():
+    with DB() as cur:
+        cur.execute(DELETE_ALL_STMT)

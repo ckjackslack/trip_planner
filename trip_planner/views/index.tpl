@@ -11,20 +11,20 @@
             <h1 class="title">Trip Planner</h1>
             <form action="/add_location" method="post" id="location-form">
                 <div class="field">
-                    <label class="label">Name</label>
+                    <label class="label">Place</label>
                     <div class="control">
-                        <input class="input" type="text" name="name" required>
+                        <input class="input" type="text" name="place" required>
                     </div>
                 </div>
                 <div class="field">
-                    <label class="label">Location Name</label>
+                    <label class="label">Locations</label>
                     <div class="control">
-                        <input class="input" type="text" name="location_name" required>
+                        <textarea class="textarea" name="locs"></textarea>
                     </div>
                 </div>
                 <div class="field">
                     <div class="control">
-                        <button type="submit" class="button is-link">Add Location</button>
+                        <button type="submit" class="button is-link">Add Locations</button>
                     </div>
                 </div>
             </form>
@@ -33,6 +33,7 @@
             <button id="load-locations" class="button is-info">Load Locations</button>
             <button id="clear-locations" class="button is-danger">Clear</button>
             <button id="generate-map" class="button is-warning">Generate map</button>
+            <button id="delete-locations" class="button is-danger">Delete all</button>
 
             <div id="locations" class="content mt-4">
                 <table>

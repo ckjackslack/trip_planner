@@ -28,3 +28,7 @@ UPDATE places
 SET name=?, location=?, latitude=?, longitude=?
 WHERE id=?
 """.strip()
+
+DELETE_ALL_STMT = """
+DELETE FROM places
+""".strip()

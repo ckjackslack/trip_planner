@@ -3,6 +3,7 @@ import os
 import folium
 
 from .database import list_places
+from .settings import ORIGIN
 
 
 def generate_map():
@@ -11,7 +12,8 @@ def generate_map():
     # Check if there are any places in the database
     if not places:
         print("No locations found in the database.")
-        return
+        print("Defaulting to origin point.")
+        places = [ORIGIN]
 
     # Create a base map
     m = folium.Map(location=[places[0][3], places[0][4]], zoom_start=6)
@@ -21,7 +23,8 @@ def generate_map():
         folium.Marker([lat, lon], tooltip=name).add_to(m)
 
     # Adjust the map to fit all markers
-    m.fit_bounds([[place[3], place[4]] for place in places])
+    if len(places) > 1:
+        m.fit_bounds([[place[3], place[4]] for place in places])
 
     # Save the map to an HTML file
     try:
