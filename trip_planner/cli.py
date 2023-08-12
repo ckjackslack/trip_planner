@@ -4,7 +4,6 @@ import argparse
 def get_args(override_args=None):
     parser = argparse.ArgumentParser(description="Plan your trip places.")
 
-
     parser.add_argument('--add', help='Add a new place', action="store_true")
     parser.add_argument('--correct', action='store_true',
         help="Correct the information of a location. Defaults to the last one added if --id is not provided.")

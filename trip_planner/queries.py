@@ -1,5 +1,5 @@
 CREATE_STMT = """
-CREATE TABLE IF NOT EXISTS places(
+CREATE TABLE IF NOT EXISTS place(
     id INTEGER PRIMARY KEY,
     name TEXT,
     location TEXT,
@@ -8,27 +8,27 @@ CREATE TABLE IF NOT EXISTS places(
 )""".strip()
 
 INSERT_STMT = """
-INSERT INTO places (name, location, latitude, longitude)
+INSERT INTO place (name, location, latitude, longitude)
 VALUES (?, ?, ?, ?)
 """.strip()
 
 SELECT_SINGLE_STMT = """
 SELECT id, name, location, latitude, longitude
-FROM places
+FROM place
 WHERE id=?
 """.strip()
 
 SELECT_ALL_STMT = """
 SELECT id, name, location, latitude, longitude
-FROM places
+FROM place
 """.strip()
 
 UPDATE_STMT = """
-UPDATE places
+UPDATE place
 SET name=?, location=?, latitude=?, longitude=?
 WHERE id=?
 """.strip()
 
 DELETE_ALL_STMT = """
-DELETE FROM places
+DELETE FROM place
 """.strip()

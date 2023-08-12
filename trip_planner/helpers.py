@@ -8,7 +8,7 @@ from trip_planner import settings
 
 
 class DB:
-    def __init__(self, file=settings.DB_FILE):
+    def __init__(self, file=settings.DB_PATH):
         self.file = file
     def __enter__(self):
         self.conn = sqlite3.connect(self.file)

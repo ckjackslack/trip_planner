@@ -1,9 +1,10 @@
 from trip_planner.utils import get_path
 
 
-BASE_DIR = str(get_path(".."))
+BASE_DIR = get_path("..")
 
 DB_FILE = "trip_planner.db"
+DB_PATH = str(BASE_DIR / DB_FILE)
 
 ORIGIN = (0, "Kielce", "Kielce", 50.866059, 20.627303)
 

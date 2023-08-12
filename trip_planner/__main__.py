@@ -1,12 +1,13 @@
-from .cli import get_args
-from .database import (
+from trip_planner.cli import get_args
+from trip_planner.database import (
     add_place,
     list_places,
     update_place,
     setup_database,
 )
-from .geolocation import get_location_info
-from .map_generator import generate_map
+from trip_planner.datastructs import PlaceDC
+from trip_planner.geolocation import get_location_info
+from trip_planner.map_generator import generate_map
 
 
 def main():
@@ -16,7 +17,8 @@ def main():
         if args.name:
             location_info, lat, lon = get_location_info(args.name)
             if location_info and lat and lon:
-                add_place(args.name, location_info, lat, lon)
+                place = PlaceDC(args.name, location_info, lat, lon)
+                add_place(place)
                 print(f"{args.name} added with location info: {location_info} ({lat}, {lon})")
             else:
                 print("Failed to add the location. Please refine your search.")
@@ -28,31 +30,24 @@ def main():
             print(place)
 
     if args.correct:
-        places = list_places()
-        if not places:
-            print("No places found.")
+        if not args.id:
+            print("No ID provided.")
             return
 
-        # Display the list of places with IDs
-        for place in places:
-            print(f"ID: {place[0]} - Name: {place[1]} - Location: {place[2]} - Coordinates: ({place[3]}, {place[4]})")
+        name = input("Enter new name: ")
+        new_location_info = input("Enter new location name: ")
 
-        # If no ID is provided, default to the last place added
-        place_id = args.id or places[-1][0]
+        if not name or not new_location_info:
+            print("You need to provide both name and location name.")
+            return
 
-        # Prompt user for new data
-        name = input("Enter new name (press Enter to skip): ")
-        new_location_info = input("Enter new location name (press Enter to skip): ")
+        location, lat, lon = get_location_info(new_location_info)
 
-        if new_location_info:
-            location, lat, lon = get_location_info(new_location_info)
-        else:
-            location, lat, lon = None, None, None
-
-        update_place(place_id, name, location, lat, lon)
+        place = PlaceDC(name, location, lat, lon, args.id)
+        update_place(place)
 
     if args.create_map:
-        generate_map()
+        generate_map(list_places(as_dict=True))
 
 
 if __name__ == "__main__":

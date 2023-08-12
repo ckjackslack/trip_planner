@@ -1,3 +1,6 @@
+import sys
+sys.dont_write_bytecode = True
+
 import contextlib
 import os
 import sqlite3
@@ -14,7 +17,7 @@ from trip_planner.database import (
     list_places,
     setup_database,
 )
-from trip_planner.datastructs import Place
+from trip_planner.datastructs import PlaceDC
 from trip_planner.geolocation import get_location_info
 from trip_planner.queries import *
 from trip_planner.utils import (
@@ -97,8 +100,7 @@ class TripPlannerTestCase(unittest.TestCase):
         mock_fetchall.assert_called_once()
         assert places == rows
 
-        some_place = Place.from_tuple(row)
-        some_place_kwargs = forget(some_place._asdict(), "id")
+        some_place = PlaceDC.from_tuple(row)
         add_place(some_place)
 
         mock_execute.assert_called_with(
@@ -107,7 +109,7 @@ class TripPlannerTestCase(unittest.TestCase):
         )
         assert mock_execute.call_count == 3
 
-        ret = update_place(some_place.id, **some_place_kwargs)
+        ret = update_place(some_place)
 
         mock_fetchone.assert_called_once()
         assert mock_execute.call_args_list[-2].args == (
@@ -116,10 +118,7 @@ class TripPlannerTestCase(unittest.TestCase):
         )
         assert mock_execute.call_args_list[-1].args == (
             UPDATE_STMT,
-            (
-                tuple(some_place_kwargs.values())
-                + (some_place.id,)
-            ),
+            some_place.as_tuple(for_update=True),
         )
         assert mock_execute.call_count == 5
         assert ret

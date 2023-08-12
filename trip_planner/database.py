@@ -1,10 +1,12 @@
-from trip_planner.datastructs import Place
+from trip_planner.datastructs import PlaceDC
 from trip_planner.helpers import DB
 from trip_planner.queries import *
-from trip_planner.utils import (
-    calculate_distance,
-    forget,
-)
+
+
+def which_db():
+    with DB() as cur:
+        db_path = tuple(cur.execute("PRAGMA database_list").fetchone())[-1]
+        print(db_path)
 
 
 def setup_database():
@@ -12,8 +14,8 @@ def setup_database():
         cur.execute(CREATE_STMT)
 
 
-def add_place(place: Place):
-    vals = tuple(forget(place._asdict(), "id").values())
+def add_place(place: PlaceDC):
+    vals = tuple(place.dict("id").values())
     with DB() as cur:
         cur.execute(
             INSERT_STMT,
@@ -21,42 +23,47 @@ def add_place(place: Place):
         )
 
 
-def update_place(place_id: int, **kwargs):
+def find_place(place_id: int):
     with DB() as cur:
         cur.execute(
             SELECT_SINGLE_STMT,
             (place_id,),
         )
-        result = cur.fetchone()
-        if not result:
-            return False
-        else:
-            result = Place(*result)
-            kwargs.update({
-                "name": result.name,
-                "location": result.location,
-                "latitude": result.latitude,
-                "longitude": result.longitude,
-            })
+        return cur.fetchone()
 
+
+def update_place(place: PlaceDC):
+    existing = find_place(place.id)
+    if not existing:
+        return False
+
+    existing = PlaceDC.from_tuple(tuple(existing))
+
+    data = existing.dict() | place.dict()
+    del data["id"]
+
+    data = PlaceDC(**data)
+
+    with DB() as cur:
         cur.execute(
             UPDATE_STMT,
             (
-                tuple(kwargs.values())
-                + (result.id,)
+                data.as_tuple()[1:]
+                + (place.id,)
             ),
         )
         return True
 
 
-def list_places():
+def list_places(as_dict=False):
     with DB() as cur:
         cur.execute(SELECT_ALL_STMT)
-        places = cur.fetchall()
         return [
-            Place.from_tuple(place)
+            tuple(place)
+            if not as_dict
+            else dict(place)
             for place
-            in places
+            in cur.fetchall()
         ]
 
 
