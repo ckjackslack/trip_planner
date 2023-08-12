@@ -1,96 +1,98 @@
-import os
+import sys
+sys.dont_write_bytecode = True
 
-from bottle import (
-    HTTPResponse,
-    abort,
-    get,
+from flask import (
+    Flask,
+    g,
+    jsonify,
+    render_template,
     request,
-    response,
-    route,
-    run,
-    static_file,
-    template,
 )
 
-import trip_planner.settings as settings
-from trip_planner.database import (
-    add_place,
-    clear_places,
-    list_places,
-    setup_database,
-)
-from trip_planner.datastructs import Place
 from trip_planner.geolocation import get_location_info
-from trip_planner.map_generator import generate_map as genmap
+from trip_planner.helpers import no_cache
+from trip_planner.map_generator import generate_map
+from trip_planner.models import (
+    Place as PlaceModel,
+    db,
+)
+from trip_planner.utils import setup_logging
+from trip_planner import settings
 
 
-@route('/')
+app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+setup_logging(app)
+
+
+@app.before_request
+def before_request():
+    g.db = db
+    g.db.connect()
+
+
+@app.teardown_request
+def teardown_request(exception):
+    db = getattr(g, "db", None)
+    if db is not None:
+        db.close()
+
+
+@app.route("/", methods=["GET"])
 def index():
-    if not os.path.isfile(settings.DB_FILE):
-        setup_database()
-    return template('index')
+    return render_template("index.tpl")
 
 
-@route('/map')
-def show_locations():
-    if not os.path.isfile(settings.MAP_PATH):
-        abort(404, "No map file")
-    return template(settings.MAP_PATH)
-
-
-@route('/add_locations', method='POST')
+@app.route("/add_locations", methods=["POST"])
 def add_locations():
-    place = request.forms.get('place')
-    locations = request.forms.get('locs').strip().split("\r\n")
-    for name in locations:
-        location, lat, lon = get_location_info(f"{place}, {name}", force=True)
-        if location:
-            place_obj = Place(None, name, location, lat, lon)
-            add_place(place_obj)
-    return ""
+    place = request.form.get("place")
+    locations = request.form.get('locs')
+    locations = [l.strip() for l in locations.strip().split("\r\n")]
+
+    no_of_locations = len(locations)
+
+    no_of_errors = 0
+    for location in locations:
+        location_name, lat, lon = get_location_info(
+            f"{place}, {location}",
+            force=True,
+        )
+        if location_name:
+            PlaceModel.add_place(location, location_name, lat, lon)
+        else:
+            no_of_errors += 1
+
+    no_of_added = no_of_locations - no_of_errors
+
+    return jsonify({
+        "msg": f"Added {no_of_added} of {no_of_locations} locations.",
+    })
 
 
-@route('/delete_all', method="DELETE")
-def delete_all():
-    clear_places()
-    return HTTPResponse(status=204)
-
-
-@route('/get_locations', method='GET')
+@app.route("/get_locations", methods=["GET"])
 def get_locations():
-    response.content_type = 'application/json'
-    return {
-        "locations": list_places(),
-    }
+    places = PlaceModel.get_places()
+    return jsonify(locations=places)
 
 
-@route('/generate_map', method="GET")
-def generate_map():
-    try:
-        genmap()
-        ret = "success"
-        error = None
-    except Exception as e:
-        ret = "failure"
-        error = str(e)
-    response.content_type = 'application/json'
-    return {
-        "outcome": ret,
-        "error": error,
-    }
+@app.route("/clear_locations", methods=["DELETE"])
+def clear_locations():
+    PlaceModel.clear_places()
+    return ('', 204)
 
 
-@get('/static/<filename:path>')
-def send_static(filename):
-    response = static_file(filename, root=settings.STATIC_PATH)
-    response.set_header("Cache-Control", "no-cache")
-    return response
+@app.route("/create_map", methods=["GET"])
+def create_map():
+    places = PlaceModel.get_places()
+    generate_map(places)
+    return ('', 200)
+
+
+@app.route("/map", methods=["GET"])
+@no_cache
+def show_map():
+    return render_template("trip_map.html")
 
 
 if __name__ == "__main__":
-    run(
-        debug=True,
-        host=settings.HOST,
-        port=settings.PORT,
-        reloader=True,
-    )
+    app.run(host=settings.HOST, port=settings.PORT)

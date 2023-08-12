@@ -3,13 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>Trip Planner</title>
-    <link rel="stylesheet" type="text/css" href="/static/bulma.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma.min.css') }}">
+    <style>
+        #generate-map {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <section class="section">
         <div class="container">
             <h1 class="title">Trip Planner</h1>
-            <form action="/add_location" method="post" id="location-form">
+
+            <form id="location-form">
                 <div class="field">
                     <label class="label">Place</label>
                     <div class="control">
@@ -24,7 +30,9 @@
                 </div>
                 <div class="field">
                     <div class="control">
-                        <button type="submit" class="button is-link">Add Locations</button>
+                        <button type="submit" class="button is-link">
+                            Add Locations
+                        </button>
                     </div>
                 </div>
             </form>
@@ -52,11 +60,11 @@
                 </table>
             </div>
 
-            <iframe src="/map" width="800" height="600"></iframe>
+            <iframe id="map-frame" src="/map" width="800" height="600"></iframe>
             <br>
             <a href="/map">Show map on separate page</a>
         </div>
     </section>
-    <script src="/static/index.js"></script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
 </body>
 </html>

@@ -1,45 +1,39 @@
-import json
 from dataclasses import (
     asdict,
     dataclass,
     field,
-    is_dataclass,
 )
-from functools import partial
-
-from trip_planner.settings import ORIGIN
-from trip_planner.utils import calculate_distance
+from typing import List, TypedDict
 
 
-class EnhancedJSONEncoder(json.JSONEncoder):
-    def default(self, o):
-        if is_dataclass(o):
-            return asdict(o)
-        return super().default(o)
-
-
-@dataclass
-class Place:
+class PlaceDict(TypedDict):
+    id: int
     name: str
     location: str
     latitude: float
     longitude: float
-    id: int = field(default=None)
-    distance: float = field(init=False)
+    distance: float
 
-    def get_coords(self):
-        return (self.latitude, self.longitude)
 
-    def __post_init__(self):
-        self.distance = calculate_distance(
-            ORIGIN[-2:],
-            self.get_coords(),
-        )
+@dataclass
+class PlaceDC:
+    name: str
+    location: str
+    latitude: float
+    longitude: float
+    id: int = field(init=False, default=None)
 
     @classmethod
-    def from_tuple(cls, row):
-        row_id, *rest = row
-        return cls(*rest, row_id)
+    def from_tuple(cls, tup):
+        return cls(*tup)
+
+    def dict(self):
+        value = asdict(self)
+        del value["id"]
+        return value
+
+    def __post_init__(self):
+        self.distance = None
 
 
-json_dumps = partial(json.dumps, cls=EnhancedJSONEncoder)
+ListOfPlaces = List[PlaceDict]

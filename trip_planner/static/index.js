@@ -1,60 +1,51 @@
+var recentLocations = null;
+
 document.addEventListener('DOMContentLoaded', function() {
-    const locationForm = document.getElementById('location-form');
-    const loadLocationsBtn = document.getElementById('load-locations');
-    const locationsDiv = document.getElementById('locations');
     const clearBtn = document.getElementById('clear-locations');
-    const tableBodyElem = document.getElementById('data-rows');
-    const generateMapBtn = document.getElementById('generate-map');
-    const inputName = document.querySelector('input[name="name"]');
-    const inputLocationName = document.querySelector('input[name="location_name"]');
     const deleteAllBtn = document.getElementById('delete-locations');
+    const generateMapBtn = document.getElementById('generate-map');
+    const inputLocs = document.querySelector('textarea[name="locs"]');
+    const inputPlace = document.querySelector('input[name="place"]');
+    const loadLocationsBtn = document.getElementById('load-locations');
+    const locationForm = document.getElementById('location-form');
+    const mapFrame = document.getElementById('map-frame');
+    const tableBodyElem = document.getElementById('data-rows');
 
     clearBtn.addEventListener('click', function() {
         tableBodyElem.innerHTML = "";
     });
 
     deleteAllBtn.addEventListener('click', function() {
-        fetch('/delete_all', {
+        fetch('/clear_locations', {
             method: 'DELETE',
         })
         .then(data => {
             clearBtn.click();
+            setTimeout(function() {
+                generateMapBtn.click();
+            }, 2000);
         });
     });
 
     generateMapBtn.addEventListener('click', function() {
-        fetch('/generate_map')
-        .then(response => response.json())
-        .then(data => {
-            console.log(data);
+        fetch('/create_map')
+        .then(response => {
+            setTimeout(function() {
+                mapFrame.contentWindow.location.reload();
+            }, 2000);
         });
-    });
-
-    locationForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(locationForm);
-        fetch('/add_locations', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.text())
-        .then(data => {
-            setTimeout(() => {
-                loadLocationsBtn.click();
-            }, 5000);
-            setTimeout(() => {
-                generateMapBtn.click();
-                setTimeout(() => {
-                    location.reload();
-                }, 3000);
-            }, 15000);
-        })
-        .catch(error => console.error('Error:', error));
     });
 
     function render_locations(locations) {
         let rows = "";
-        const order = ["id", "name", "location", "latitude", "longitude", "distance"]
+        const order = [
+            "id",
+            "name",
+            "location",
+            "latitude",
+            "longitude",
+            "distance",
+        ]
         let row = [];
         for (let loc of locations) {
             row = order.map((o) => loc[o]);
@@ -69,10 +60,33 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             const locations = data.locations;
             if (locations) {
+                recentLocations = locations;
                 tableBodyElem.innerHTML = render_locations(locations);
-                inputName.value = "";
-                inputLocationName.value = "";
             }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+
+    locationForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(locationForm);
+        let size = formData.get("locs").split("\n").length;
+        if (size > 5) {
+            alert("Cannot add more than 5 locations at once.");
+            return;
+        }
+        fetch('/add_locations', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadLocationsBtn.click();
+            inputPlace.value = "";
+            inputLocs.value = "";
+            setTimeout(function() {
+                generateMapBtn.click();
+            }, 1000);
         })
         .catch(error => console.error('Error:', error));
     });
